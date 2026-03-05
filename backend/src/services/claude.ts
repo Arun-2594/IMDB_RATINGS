@@ -109,41 +109,55 @@ export async function analyzeSentiment(
 ): Promise<SentimentResult> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
 
-  // FALLBACK: Simulation Mode (If no API Key or placeholder is present)
+  // FALLBACK: Dynamic Simulation Mode (If no API Key or placeholder is present)
   if (!apiKey || apiKey === 'PASTE_YOUR_CLAUDE_KEY_HERE') {
-    console.log(`🤖 Simulation Mode: Generating AI Insights for "${movieTitle}"...`);
+    console.log(`🤖 Dynamic Simulation Mode: Generating AI Insights for "${movieTitle}"...`);
 
-    // Artificial delay for realism
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    // Artificial delay for realism (1.5s to 3s)
+    const delay = 1500 + Math.random() * 1500;
+    await new Promise(resolve => setTimeout(resolve, delay));
+
+    // Generate pseudo-random variations based on the title string
+    const seed = movieTitle.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const var1 = (seed % 15) - 7; // -7 to +7
+    const var2 = (seed % 10);      // 0 to 9
+
+    const baseScore = 75 + var1;
+    const pos = Math.min(95, baseScore + var2);
+    const neg = Math.max(5, 100 - pos - (seed % 15));
+    const mixed = 100 - pos - neg;
+
+    const adjectives = ["compelling", "extraordinary", "visceral", "thought-provoking", "groundbreaking", "polarizing", "heartwarming"];
+    const adj = adjectives[seed % adjectives.length];
 
     return {
-      summary: `Audience reception for "${movieTitle}" is remarkably strong across the board. Viewers consistently praise the film's visual ambition and stylistic direction, noting that it creates a unique atmospheric experience that sets it apart from contemporary peers. The emotional core of the story is cited as a major strength, providing a grounded reality to the film's grander concepts.`,
+      summary: `Audience reception for "${movieTitle}"${year ? ` (${year})` : ''} is characterized as ${adj} and highly impactful. Collectors and critics alike highlight the distinctive tonal choices and the resonance of the central performances. While there is broad consensus on its technical merit, some viewers debate the pacing of its final act, creating a rich discourse around its ultimate legacy.`,
       themes: [
-        'Cinematic Atmosphere',
-        'Narrative Ambition',
-        'Stellar Visual Design',
-        'Emotional Depth',
-        'Genre-Defining Techniques'
+        'Cinematic Innovation',
+        `${movieTitle} Narrative Structure`,
+        'Atmospheric World-building',
+        'Legacy and Cultural Impact',
+        'Performance Excellence'
       ],
       positiveHighlights: [
-        'Exceptional visual direction and color palettes',
-        'Highly nuanced and memorable performances',
-        'Innovative world-building and attention to detail'
+        `Masterful execution of "${movieTitle}" key themes`,
+        'Exceptional visual fidelity and cinematography',
+        'Deeply resonant score and sound design'
       ],
       negativePoints: [
-        'Pacing slows slightly in the middle chapter',
-        'Some plot developments require close attention to fully grasp'
+        'Experimental pacing may not appeal to all traditionalists',
+        'Intricate plot requires significant audience investment'
       ],
-      sentiment: 'POSITIVE',
-      score: 89,
+      sentiment: baseScore > 80 ? 'POSITIVE' : (baseScore > 60 ? 'MIXED' : 'NEGATIVE'),
+      score: baseScore,
       breakdown: {
-        positive: 82,
-        mixed: 12,
-        negative: 6
+        positive: pos,
+        mixed: mixed,
+        negative: neg
       },
-      audienceProfile: 'Lovers of high-concept cinema, visual storytelling enthusiasts, and character-driven drama fans.',
-      rewatch: 'high',
-      oneLineVerdict: 'A masterfully executed achievement in modern filmmaking that rewards deep engagement.'
+      audienceProfile: `Dedicated cinephiles and fans of ${adj} storytelling who value creative risk-taking.`,
+      rewatch: baseScore > 85 ? 'high' : (baseScore > 70 ? 'medium' : 'low'),
+      oneLineVerdict: `A ${adj} achievement that stands as a significant contribution to its genre.`
     };
   }
 

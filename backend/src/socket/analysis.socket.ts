@@ -1,7 +1,7 @@
 import { Server, Socket } from 'socket.io';
 import { fetchMovieData } from '../services/omdb';
 import { scrapeImdbReviews } from '../services/scraper';
-import { analyzeSentiment } from '../services/claude';
+import { analyzeSentiment } from '../services/gemini';
 import { getCached, setCache, cacheKey } from '../services/cache';
 import { logger } from '../middleware/logger';
 import { MovieData } from '../types/movie.types';
