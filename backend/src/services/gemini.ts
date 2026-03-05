@@ -31,8 +31,7 @@ export async function analyzeSentiment(
   }
 
   const genAI = new GoogleGenerativeAI(apiKey);
-  // Use the latest stable model version
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
   const reviewsText = reviews.slice(0, 15).join("\n\n");
   const prompt = `Analyze these audience reviews for "${movieTitle}"${year ? ` (${year})` : ''}:
