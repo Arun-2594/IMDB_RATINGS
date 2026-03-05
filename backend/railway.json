@@ -4,8 +4,8 @@
         "builder": "NIXPACKS"
     },
     "deploy": {
+        "startCommand": "npm start",
         "numReplicas": 1,
-        "sleepApplication": false,
-        "root": "/backend"
+        "sleepApplication": false
     }
 }
