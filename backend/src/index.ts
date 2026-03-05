@@ -27,9 +27,20 @@ const allowedOrigins = [
 const corsOptions = {
   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
     if (!origin) return callback(null, true);
-    if (allowedOrigins.some((allowed) => origin.startsWith(allowed))) {
+
+    // Normalize both by removing trailing slashes for comparison
+    const normalizedOrigin = origin.replace(/\/$/, '');
+
+    const isAllowed = allowedOrigins.some((allowed) => {
+      const normalizedAllowed = allowed.replace(/\/$/, '');
+      return normalizedOrigin === normalizedAllowed;
+    });
+
+    if (isAllowed) {
       return callback(null, true);
     }
+
+    logger.warn(`🚫 CORS blocked: ${origin}. Allowed: ${allowedOrigins.join(', ')}`);
     callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
