@@ -13,7 +13,7 @@ const ParticleBackground = dynamic(
   { ssr: false }
 );
 
-const IMDB_ID_REGEX = /^tt\d{7,8}$/;
+const IMDB_ID_REGEX = /^tt\d{7,10}$/;
 
 const exampleMovies = [
   { id: "tt0133093", title: "The Matrix" },
@@ -191,8 +191,8 @@ export default function HomePage() {
                     ease: "easeOut",
                   }}
                   className={`inline-block mr-3 sm:mr-4 ${i >= 2
-                      ? "bg-gradient-to-r from-[var(--accent-purple)] via-[var(--accent-cyan)] to-[var(--accent-pink)] bg-clip-text text-transparent"
-                      : "text-white"
+                    ? "bg-gradient-to-r from-[var(--accent-purple)] via-[var(--accent-cyan)] to-[var(--accent-pink)] bg-clip-text text-transparent"
+                    : "text-white"
                     }`}
                 >
                   {word}

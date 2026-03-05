@@ -7,7 +7,7 @@ import { logger } from '../middleware/logger';
 import { MovieData } from '../types/movie.types';
 import { SentimentResult, AnalysisCompletePayload } from '../types/sentiment.types';
 
-const IMDB_ID_REGEX = /^tt\d{7,8}$/;
+const IMDB_ID_REGEX = /^tt\d{7,10}$/;
 
 export function setupAnalysisSocket(io: Server): void {
   io.on('connection', (socket: Socket) => {
