@@ -31,43 +31,52 @@ export async function analyzeSentiment(
   }
 
   const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+  const modelNames = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro"];
 
-  const reviewsText = reviews.slice(0, 15).join("\n\n");
-  const prompt = `Analyze these audience reviews for "${movieTitle}"${year ? ` (${year})` : ''}:
-  ${reviewsText}
+  let lastError: any = null;
 
-  Return ONLY a valid JSON object. Do not include any text before or after the JSON.
-  {
-    "summary": "3-4 sentence narrative of audience reception",
-    "themes": ["theme1", "theme2", "theme3", "theme4", "theme5"],
-    "positiveHighlights": ["highlight1", "highlight2"],
-    "negativePoints": ["point1", "point2"],
-    "sentiment": "POSITIVE",
-    "score": 85,
-    "breakdown": { "positive": 80, "mixed": 15, "negative": 5 },
-    "audienceProfile": "description",
-    "rewatch": "high",
-    "oneLineVerdict": "verdict"
-  }`;
+  for (const modelName of modelNames) {
+    try {
+      console.log(`🤖 Attempting AI analysis with model: ${modelName}...`);
+      const model = genAI.getGenerativeModel({ model: modelName });
 
-  try {
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
+      const reviewsText = reviews.slice(0, 15).join("\n\n");
+      const prompt = `Analyze these audience reviews for "${movieTitle}"${year ? ` (${year})` : ''}:
+      ${reviewsText}
 
-    // Improved JSON cleaning: find the first { and last }
-    const startIdx = text.indexOf('{');
-    const endIdx = text.lastIndexOf('}');
+      Return ONLY a valid JSON object. Do not include any text before or after the JSON.
+      {
+        "summary": "3-4 sentence narrative of audience reception",
+        "themes": ["theme1", "theme2", "theme3", "theme4", "theme5"],
+        "positiveHighlights": ["highlight1", "highlight2"],
+        "negativePoints": ["point1", "point2"],
+        "sentiment": "POSITIVE",
+        "score": 85,
+        "breakdown": { "positive": 80, "mixed": 15, "negative": 5 },
+        "audienceProfile": "description",
+        "rewatch": "high",
+        "oneLineVerdict": "verdict"
+      }`;
 
-    if (startIdx === -1 || endIdx === -1) {
-      throw new Error("Invalid AI response format");
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
+
+      const startIdx = text.indexOf('{');
+      const endIdx = text.lastIndexOf('}');
+
+      if (startIdx === -1 || endIdx === -1) {
+        throw new Error("Invalid AI response format");
+      }
+
+      const jsonStr = text.substring(startIdx, endIdx + 1);
+      return JSON.parse(jsonStr) as SentimentResult;
+    } catch (err) {
+      console.warn(`⚠️ Model ${modelName} failed:`, err);
+      lastError = err;
+      continue; // Try next model
     }
-
-    const jsonStr = text.substring(startIdx, endIdx + 1);
-    return JSON.parse(jsonStr) as SentimentResult;
-  } catch (err) {
-    console.error("Gemini API Error:", err);
-    throw new Error(`AI Analysis failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
   }
+
+  throw new Error(`AI Analysis failed after trying all models. Last error: ${lastError instanceof Error ? lastError.message : 'Unknown error'}`);
 }
