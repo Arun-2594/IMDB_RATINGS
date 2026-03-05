@@ -10,9 +10,9 @@ import { AnalysisTerminal } from "@/components/AnalysisTerminal";
 import { ErrorCard } from "@/components/ErrorCard";
 import Image from "next/image";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://imdbratings-production.up.railway.app";
 const SOCKET_URL =
-  process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3001";
+  process.env.NEXT_PUBLIC_SOCKET_URL || "https://imdbratings-production.up.railway.app";
 
 interface MovieData {
   title: string;
