@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from 'express';
 /**
  * Validates that the IMDb ID matches the expected pattern: tt followed by 7-8 digits
  */
-export const IMDB_ID_REGEX = /^tt\d{7,8}$/;
+export const IMDB_ID_REGEX = /^tt\d{7,10}$/;
 
 export function validateImdbId(req: Request, res: Response, next: NextFunction): void {
   const imdbId = req.params.imdbId as string;
