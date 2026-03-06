@@ -79,3 +79,29 @@ export async function scrapeImdbReviews(imdbId: string): Promise<string[]> {
     throw error;
   }
 }
+
+/**
+ * Emergency Fallback: Scrape basic title/metadata directly from IMDb HTML
+ */
+export async function getBasicInfoDirectlyFromImdb(imdbId: string) {
+  const url = `https://www.imdb.com/title/${imdbId}/`;
+  try {
+    const response = await axios.get(url, {
+      timeout: 10000,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+      }
+    });
+
+    const $ = cheerio.load(response.data);
+    const title = $('[data-testid="hero__primary-text"]').text().trim() ||
+      $('h1').first().text().trim() ||
+      'Unknown Title';
+
+    const year = $('[href*="releaseinfo"]').first().text().trim().match(/\d{4}/)?.[0] || 'N/A';
+
+    return { title, year, imdbId };
+  } catch (err) {
+    return null;
+  }
+}

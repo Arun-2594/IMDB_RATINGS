@@ -75,8 +75,45 @@ export function setupAnalysisSocket(io: Server): void {
         if (cachedMovie) {
           movie = cachedMovie;
         } else {
-          movie = await fetchMovieData(imdbId);
-          setCache(cacheKey('movie', imdbId), movie);
+          try {
+            movie = await fetchMovieData(imdbId);
+            setCache(cacheKey('movie', imdbId), movie);
+          } catch (omdbError) {
+            logger.warn(`OMDB failed for ${imdbId}, trying direct scrape: ${omdbError instanceof Error ? omdbError.message : 'Unknown error'}`);
+
+            // Try direct scrape from scraper service
+            const { getBasicInfoDirectlyFromImdb } = await import('../services/scraper');
+            const scrapedInfo = await getBasicInfoDirectlyFromImdb(imdbId);
+
+            if (!scrapedInfo || scrapedInfo.title === 'Unknown Title') {
+              throw new Error(`Movie not found. ID ${imdbId} does not appear to be valid on IMDb.`);
+            }
+
+            // Build a partial movie object
+            movie = {
+              title: scrapedInfo.title,
+              year: scrapedInfo.year,
+              imdbId: scrapedInfo.imdbId,
+              rated: 'N/A',
+              released: 'N/A',
+              runtime: 'N/A',
+              genre: [],
+              director: 'N/A',
+              writer: 'N/A',
+              cast: [],
+              plot: 'Metadata unavailable in database, but analysis is proceeding...',
+              language: 'N/A',
+              country: 'N/A',
+              awards: 'N/A',
+              poster: '',
+              ratings: [],
+              metascore: 'N/A',
+              imdbRating: 'N/A',
+              imdbVotes: 'N/A',
+              boxOffice: 'N/A'
+            };
+            setCache(cacheKey('movie', imdbId), movie);
+          }
         }
 
         socket.emit('analysis:step', {
