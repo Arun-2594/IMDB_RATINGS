@@ -103,3 +103,26 @@ export async function fetchMovieData(imdbId: string): Promise<MovieData> {
 
   return parseOmdbResponse(response.data);
 }
+
+/**
+ * Search for a movie by title and return its IMDb ID
+ */
+export async function searchMovieByTitle(title: string): Promise<string> {
+  const apiKey = process.env.OMDB_API_KEY;
+  if (!apiKey) throw new Error('OMDB_API_KEY is not configured');
+
+  const url = `http://www.omdbapi.com/?s=${encodeURIComponent(title)}&apikey=${apiKey}`;
+  const response = await axios.get(url, { timeout: 10000 });
+
+  if (response.data.Response === 'False') {
+    throw new Error(response.data.Error || 'Movie not found');
+  }
+
+  // Return the first result's ID
+  const firstResult = response.data.Search?.[0];
+  if (!firstResult || !firstResult.imdbID) {
+    throw new Error('Movie not found');
+  }
+
+  return firstResult.imdbID;
+}

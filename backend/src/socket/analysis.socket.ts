@@ -14,17 +14,41 @@ export function setupAnalysisSocket(io: Server): void {
     logger.info(`Socket connected: ${socket.id}`);
 
     socket.on('analysis:start', async (data: { imdbId: string }) => {
-      const { imdbId } = data;
+      let { imdbId } = data;
 
-      if (!imdbId || !IMDB_ID_REGEX.test(imdbId)) {
+      if (!imdbId || imdbId.trim().length < 2) {
         socket.emit('analysis:error', {
-          message: 'Invalid IMDb ID format',
-          code: 'INVALID_ID',
+          message: 'Please enter a movie title or IMDb ID',
+          code: 'INVALID_INPUT',
         });
         return;
       }
 
       try {
+        // If it's not a valid ID, assume it's a title and search for it
+        if (!IMDB_ID_REGEX.test(imdbId.trim())) {
+          logger.info(`Searching for movie by title: ${imdbId}`);
+          socket.emit('analysis:step', {
+            step: 'metadata',
+            status: 'loading',
+            progress: 5,
+            message: `Searching for "${imdbId}"...`
+          });
+
+          try {
+            const { searchMovieByTitle } = await import('../services/omdb');
+            imdbId = await searchMovieByTitle(imdbId.trim());
+            logger.info(`Resolved "${data.imdbId}" to ${imdbId}`);
+          } catch (err) {
+            socket.emit('analysis:error', {
+              message: `Could not find movie: "${data.imdbId}". Try using an IMDb ID.`,
+              code: 'NOT_FOUND',
+            });
+            return;
+          }
+        }
+
+        imdbId = imdbId.trim();
         // Check full cache first
         const cachedResult = getCached<AnalysisCompletePayload>(cacheKey('analysis', imdbId));
         if (cachedResult) {

@@ -85,18 +85,13 @@ export default function HomePage() {
 
       const trimmed = imdbId.trim();
       if (!trimmed) {
-        setError("Please enter an IMDb ID");
-        return;
-      }
-
-      if (!IMDB_ID_REGEX.test(trimmed)) {
-        setError("Please enter a valid IMDb ID (e.g. tt0133093)");
+        setError("Please enter a movie title or IMDb ID");
         return;
       }
 
       setError("");
       setIsSubmitting(true);
-      router.push(`/movie/${trimmed}`);
+      router.push(`/movie/${encodeURIComponent(trimmed)}`);
     },
     [imdbId, router]
   );
